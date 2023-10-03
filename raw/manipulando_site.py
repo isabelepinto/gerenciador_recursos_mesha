@@ -30,6 +30,8 @@ def atualizar_dataframes():
 
 # Função para adicionar pedidos a partir de um arquivo JSON
 def adicionar_pedidos_de_arquivo(nome_arquivo):
+    global df_pedidos 
+    
     try:
         with open(nome_arquivo, 'r') as arquivo:
             novos_pedidos = json.load(arquivo)
@@ -49,9 +51,8 @@ def adicionar_pedidos_de_arquivo(nome_arquivo):
                 "data": data,
                 "produtos": json.dumps(produtos),
             }
-            df_pedidos = df_pedidos.concat(novo_pedido, ignore_index=True)
+            df_pedidos = df_pedidos.append(novo_pedido, ignore_index=True)
         
-        # Salve os dados após adicionar os pedidos
         salvar_dados_csv()
         atualizar_dataframes()
         print("Pedidos adicionados com sucesso.")
@@ -62,6 +63,7 @@ def adicionar_pedidos_de_arquivo(nome_arquivo):
         print("Erro ao decodificar o arquivo JSON.")
     except Exception as e:
         print(f"Ocorreu um erro: {str(e)}")
+
 
 
 # Função para adicionar um novo cliente
@@ -79,7 +81,7 @@ def adicionar_cliente():
         "email": email,
         "telefone": telefone,
     }
-    df_clientes = df_clientes.concat(novo_cliente, ignore_index=True)
+    df_clientes = df_clientes.append(novo_cliente, ignore_index=True)
     salvar_dados_csv()
     atualizar_dataframes()
     
@@ -118,7 +120,7 @@ def adicionar_pedido():
         "data": data,
         "produtos": produtos_json,
     }
-    df_pedidos = df_pedidos.concat(novo_pedido, ignore_index=True)
+    df_pedidos = df_pedidos.append(novo_pedido, ignore_index=True)
     salvar_dados_csv()
     atualizar_dataframes()
     
@@ -162,7 +164,7 @@ def adicionar_pagamento():
         "status": status,
         "data_aprovacao": data_aprovacao,
     }
-    df_pagamentos = df_pagamentos.concat(novo_pagamento, ignore_index=True)
+    df_pagamentos = df_pagamentos.append(novo_pagamento, ignore_index=True)
     salvar_dados_csv()
     atualizar_dataframes()
     
@@ -211,12 +213,13 @@ def listar_pagamentos():
         print(f"Pedido ID: {pagamento['pedido_id']}, Valor: {pagamento['valor']}, Status: {pagamento['status']}, Data de Aprovação: {pagamento['data_aprovacao']}")
 
 
+# Função para calcular o total da compra
 def calcular_total_compra(df_pedidos, df_produtos):
     total = 0
     for i, pedido in df_pedidos.iterrows():
-        produtos_json = pedido['produtos']
-        produtos = json.loads(produtos_json)
-        for produto in produtos:
+        produtos_json = pedido['produtos'].replace("'", "\"")
+        produtos_json = json.loads(produtos_json)
+        for produto in produtos_json:
             produto_id = produto['produto_id']
             quantidade = produto['quantidade']
             produto_info = df_produtos[df_produtos['id'] == produto_id]
@@ -239,26 +242,27 @@ def gerar_relatorio(df_pedidos, df_produtos, df_clientes):
         else:
             cliente_nome = "Cliente não encontrado"
         
-        produtos_json = pedido['produtos']
-        produtos = json.loads(produtos_json.replace("'", "\""))
-        
+        produtos_json = pedido['produtos'].replace("'", "\"")
+        produtos_json = json.loads(produtos_json)
         produtos_str = ""
-        for p in produtos:
-            produto_id = p['produto_id']
-            quantidade = p['quantidade']
+        total_compra_pedido = 0  # Inicialize o total de compra do pedido como 0
+        
+        for produto in produtos_json:
+            produto_id = produto['produto_id']
+            quantidade = produto['quantidade']
             produto_info = df_produtos[df_produtos['id'] == produto_id]
             
             if not produto_info.empty:
                 nome_produto = produto_info['nome'].values[0]
-                produtos_str += f"{nome_produto} (Quantidade: {quantidade}), "
+                preco_unitario = produto_info['preco'].values[0]
+                total_produto = quantidade * preco_unitario  # Calcule o total para este produto
+                total_compra_pedido += total_produto  # Adicione ao total de compra do pedido
+                produtos_str += f"{nome_produto} (Quantidade: {quantidade}, Total: {total_produto:.2f}), "
         
         produtos_str = produtos_str.rstrip(", ")
         
-        print(f"ID: {pedido['id']}, Cliente: {cliente_nome}, Produtos: {produtos_str}, Data: {pedido['data']}")
+        print(f"ID: {pedido['id']}, Cliente: {cliente_nome}, Produtos: {produtos_str}, Data: {pedido['data']}, Total do Pedido: {total_compra_pedido:.2f}")
     
-    total_compra = calcular_total_compra(df_pedidos, df_produtos)
-    print(f"Total da Compra: {total_compra:.2f}")
-
 
 # Exemplo de uso
 while True:
@@ -331,7 +335,7 @@ while True:
             elif escolha_loja == "9":
                 listar_pagamentos()
             elif escolha_loja == "10":
-                gerar_relatorio(df_pedidos, df_clientes, df_produtos)
+                gerar_relatorio(df_pedidos, df_produtos, df_clientes)
             elif escolha_loja == "11":
                 break
             else:
