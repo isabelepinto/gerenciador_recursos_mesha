@@ -2,19 +2,31 @@ import pandas as pd
 import json
 from datetime import datetime
 
+
 # Leitura dos arquivos CSV
-df_produtos = pd.read_csv('produtos.csv')
-df_clientes = pd.read_csv('clientes.csv')
-df_pedidos = pd.read_csv('pedidos.csv')
-df_pagamentos = pd.read_csv('pagamentos.csv')
+df_produtos = pd.read_csv('raw/produtos.csv')
+df_clientes = pd.read_csv('raw/clientes.csv')
+df_pedidos = pd.read_csv('raw/pedidos.csv')
+df_pagamentos = pd.read_csv('raw/pagamentos.csv')
+
 
 # Função para salvar dados em um arquivo CSV
 def salvar_dados_csv():
-    global df_clientes, df_produtos, df_pedidos, df_pagamentos  # Declare as variáveis como globais
-    df_clientes.to_csv('clientes.csv', index=False)
-    df_produtos.to_csv('produtos.csv', index=False)
-    df_pedidos.to_csv('pedidos.csv', index=False)
-    df_pagamentos.to_csv('pagamentos.csv', index=False)
+    global df_clientes, df_produtos, df_pedidos, df_pagamentos  
+    df_clientes.to_csv('raw/clientes.csv', index=False)
+    df_produtos.to_csv('raw/produtos.csv', index=False)
+    df_pedidos.to_csv('raw/pedidos.csv', index=False)
+    df_pagamentos.to_csv('raw/pagamentos.csv', index=False)
+ 
+
+# Função para atualizar os dataframes    
+def atualizar_dataframes():
+    global df_clientes, df_produtos, df_pedidos, df_pagamentos
+    df_clientes = pd.read_csv('raw/clientes.csv')
+    df_produtos = pd.read_csv('raw/produtos.csv')
+    df_pedidos = pd.read_csv('raw/pedidos.csv')
+    df_pagamentos = pd.read_csv('raw/pagamentos.csv')
+
 
 # Função para adicionar pedidos a partir de um arquivo JSON
 def adicionar_pedidos_de_arquivo(nome_arquivo):
@@ -41,6 +53,7 @@ def adicionar_pedidos_de_arquivo(nome_arquivo):
         
         # Salve os dados após adicionar os pedidos
         salvar_dados_csv()
+        atualizar_dataframes()
         print("Pedidos adicionados com sucesso.")
 
     except FileNotFoundError:
@@ -49,6 +62,7 @@ def adicionar_pedidos_de_arquivo(nome_arquivo):
         print("Erro ao decodificar o arquivo JSON.")
     except Exception as e:
         print(f"Ocorreu um erro: {str(e)}")
+
 
 # Função para adicionar um novo cliente
 def adicionar_cliente():
@@ -67,6 +81,8 @@ def adicionar_cliente():
     }
     df_clientes = df_clientes.concat(novo_cliente, ignore_index=True)
     salvar_dados_csv()
+    atualizar_dataframes()
+    
 
 # Função para adicionar um novo pedido
 def adicionar_pedido():
@@ -104,6 +120,8 @@ def adicionar_pedido():
     }
     df_pedidos = df_pedidos.concat(novo_pedido, ignore_index=True)
     salvar_dados_csv()
+    atualizar_dataframes()
+    
 
 # Função para adicionar um novo produto
 def adicionar_produto():
@@ -121,6 +139,8 @@ def adicionar_produto():
     }
     df_produtos = df_produtos.append(novo_produto, ignore_index=True)
     salvar_dados_csv()
+    atualizar_dataframes()
+    
 
 # Função para adicionar um novo pagamento
 def adicionar_pagamento():
@@ -144,6 +164,8 @@ def adicionar_pagamento():
     }
     df_pagamentos = df_pagamentos.concat(novo_pagamento, ignore_index=True)
     salvar_dados_csv()
+    atualizar_dataframes()
+    
 
 # Função para listar os clientes e seus IDs
 def listar_clientes():
@@ -151,11 +173,13 @@ def listar_clientes():
     for i, cliente in df_clientes.iterrows():
         print(f"ID: {cliente['id']}, Nome: {cliente['nome']}, Email: {cliente['email']}")
 
+
 # Função para listar os pedidos de um cliente
 def listar_pedidos_cliente(cliente_id, df_clientes, df_pedidos):
     print("\nPedidos do Cliente:")
     for i, pedido in df_pedidos[df_pedidos['cliente_id'] == cliente_id].iterrows():
         print(f"ID: {pedido['id']}, Cliente: {df_clientes.loc[df_clientes['id'] == cliente_id, 'nome'].values[0]}, Produto: {pedido['produtos']}")
+
 
 # Função para listar os pagamentos de um cliente
 def listar_pagamentos_cliente(cliente_id, df_clientes, df_pedidos, df_pagamentos):
@@ -165,35 +189,76 @@ def listar_pagamentos_cliente(cliente_id, df_clientes, df_pedidos, df_pagamentos
     for i, pagamento in pagamentos_do_cliente.iterrows():
         print(f"ID: {pagamento['pedido_id']}, Valor: {pagamento['valor']}, Status: {pagamento['status']}, Data de Aprovação: {pagamento['data_aprovacao']}")
 
+
 # Função para listar os produtos
 def listar_produtos():
     print("\nLista de Produtos:")
     for i, produto in df_produtos.iterrows():
         print(f"ID: {produto['id']}, Nome: {produto['nome']}, Preço: {produto['preco']}, Estoque: {produto['estoque']}")
 
+
 # Função para listar todos os pedidos
 def listar_pedidos():
     print("\nLista de Pedidos:")
     for i, pedido in df_pedidos.iterrows():
-        print(f"ID: {pedido['id']}, Cliente: {pedido['cliente_id']}, Produto: {pedido['produtos']}, Quantidade: {pedido['quantidade']}, Valor Unitário: {pedido['valor_unitario']}, Total: {pedido['total']}")
+        print(f"ID: {pedido['id']}, Cliente: {pedido['cliente_id']}, Produto: {pedido['produtos']}")
+
 
 # Função para listar todos os pagamentos
 def listar_pagamentos():
     print("\nLista de Pagamentos:")
     for i, pagamento in df_pagamentos.iterrows():
-        print(f"ID: {pagamento['id']}, Pedido ID: {pagamento['pedido_id']}, Valor: {pagamento['valor']}, Status: {pagamento['status']}, Data de Aprovação: {pagamento['data_aprovacao']}")
+        print(f"Pedido ID: {pagamento['pedido_id']}, Valor: {pagamento['valor']}, Status: {pagamento['status']}, Data de Aprovação: {pagamento['data_aprovacao']}")
 
-# Função para calcular o total da compra
-def calcular_total_compra():
-    return df_pedidos['total'].sum()
+
+def calcular_total_compra(df_pedidos, df_produtos):
+    total = 0
+    for i, pedido in df_pedidos.iterrows():
+        produtos_json = pedido['produtos']
+        produtos = json.loads(produtos_json)
+        for produto in produtos:
+            produto_id = produto['produto_id']
+            quantidade = produto['quantidade']
+            produto_info = df_produtos[df_produtos['id'] == produto_id]
+            if not produto_info.empty:
+                preco_unitario = produto_info['preco'].values[0]
+                total += quantidade * preco_unitario
+    return total
+
 
 # Função para gerar um relatório de pedidos
-def gerar_relatorio():
+def gerar_relatorio(df_pedidos, df_produtos, df_clientes):
     print("\nRelatório de Pedidos:")
+    
     for i, pedido in df_pedidos.iterrows():
-        print(f"ID: {pedido['id']}, Cliente: {pedido['cliente']}, Produto: {pedido['produto']}, Quantidade: {pedido['quantidade']}, Valor Unitário: {pedido['valor_unitario']}, Total: {pedido['total']}")
-    total_compra = calcular_total_compra()
-    print(f"Total da Compra: {total_compra}")
+        cliente_id = pedido['cliente_id']
+        cliente_info = df_clientes[df_clientes['id'] == cliente_id]
+        
+        if not cliente_info.empty:
+            cliente_nome = cliente_info['nome'].values[0]
+        else:
+            cliente_nome = "Cliente não encontrado"
+        
+        produtos_json = pedido['produtos']
+        produtos = json.loads(produtos_json.replace("'", "\""))
+        
+        produtos_str = ""
+        for p in produtos:
+            produto_id = p['produto_id']
+            quantidade = p['quantidade']
+            produto_info = df_produtos[df_produtos['id'] == produto_id]
+            
+            if not produto_info.empty:
+                nome_produto = produto_info['nome'].values[0]
+                produtos_str += f"{nome_produto} (Quantidade: {quantidade}), "
+        
+        produtos_str = produtos_str.rstrip(", ")
+        
+        print(f"ID: {pedido['id']}, Cliente: {cliente_nome}, Produtos: {produtos_str}, Data: {pedido['data']}")
+    
+    total_compra = calcular_total_compra(df_pedidos, df_produtos)
+    print(f"Total da Compra: {total_compra:.2f}")
+
 
 # Exemplo de uso
 while True:
@@ -266,7 +331,7 @@ while True:
             elif escolha_loja == "9":
                 listar_pagamentos()
             elif escolha_loja == "10":
-                gerar_relatorio()
+                gerar_relatorio(df_pedidos, df_clientes, df_produtos)
             elif escolha_loja == "11":
                 break
             else:
