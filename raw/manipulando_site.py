@@ -73,13 +73,11 @@ def adicionar_cliente():
     
     nome = input("Digite o nome do cliente: ")
     email = input("Digite o email do cliente: ")
-    telefone = input("Digite o telefone do cliente: ")
     
     novo_cliente = {
         "id": novo_id,
         "nome": nome,
         "email": email,
-        "telefone": telefone,
     }
     df_clientes = df_clientes.append(novo_cliente, ignore_index=True)
     salvar_dados_csv()
