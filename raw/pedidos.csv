@@ -2,3 +2,6 @@ id,cliente_id,data,produtos
 1,1,2023-10-02,"[{'produto_id': 1, 'quantidade': 2}]"
 2,2,2023-10-03,"[{'produto_id': 2, 'quantidade': 1}, {'produto_id': 4, 'quantidade': 3}]"
 3,1,2023-10-04,"[{'produto_id': 3, 'quantidade': 1}]"
+4,1,2023-10-03,"[{""produto_id"": 1, ""quantidade"": 2}, {""produto_id"": 2, ""quantidade"": 1}]"
+5,2,2023-10-03,"[{""produto_id"": 3, ""quantidade"": 3}, {""produto_id"": 4, ""quantidade"": 2}]"
+6,1,2023-10-03,"[{""produto_id"": 2, ""quantidade"": 2}]"
