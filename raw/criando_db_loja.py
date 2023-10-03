@@ -10,13 +10,14 @@ produtos = [
     {"id": 2, "nome": "Calça Jeans", "preco": 49.99, "estoque": 50},
     {"id": 3, "nome": "Tênis", "preco": 79.99, "estoque": 30},
     {"id": 4, "nome": "Boné", "preco": 9.99, "estoque": 200},
+    {"id": 5, "nome": "Relógio", "preco": 80.99, "estoque": 45},
 ]
 
 # Dados fictícios de clientes
 clientes = [
-    {"id": 1, "nome": "João da Silva", "email": "joao@email.com", "telefone": "123456789"},
-    {"id": 2, "nome": "Maria Souza", "email": "maria@email.com", "telefone": "987654321"},
-    {"id": 3, "nome": "Pedro Oliveira", "email": "pedro@email.com", "telefone": "555555555"},
+    {"id": 1, "nome": "João da Silva", "email": "joao@email.com"},
+    {"id": 2, "nome": "Maria Souza", "email": "maria@email.com"},
+    {"id": 3, "nome": "Pedro Oliveira", "email": "pedro@email.com"},
 ]
 
 # Dados fictícios de pedidos
@@ -34,9 +35,6 @@ pagamentos = [
 ]
 
 
-# Definindo o nome do arquivo csv
-arquivo_csv = 'dados_loja_online.csv'
-
 # Função para salvar dados em um arquivo CSV
 def salvar_dados_csv():
     # Criar um DataFrame para cada conjunto de dados
@@ -46,10 +44,10 @@ def salvar_dados_csv():
     df_pagamentos = pd.DataFrame(pagamentos)
 
     # Salvar DataFrames em um arquivo CSV
-    df_produtos.to_csv('produtos.csv', index=False)
-    df_clientes.to_csv('clientes.csv', index=False)
-    df_pedidos.to_csv('pedidos.csv', index=False)
-    df_pagamentos.to_csv('pagamentos.csv', index=False)
+    df_produtos.to_csv('raw/produtos.csv', index=False)
+    df_clientes.to_csv('raw/clientes.csv', index=False)
+    df_pedidos.to_csv('raw/pedidos.csv', index=False)
+    df_pagamentos.to_csv('raw/pagamentos.csv', index=False)
 
     print(f'Dados salvos em arquivos CSV individuais.')
 
